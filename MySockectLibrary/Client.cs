@@ -14,8 +14,19 @@ public class SocketClient
 
     public SocketClient(int maxRetries = 3, int retryDelayMs = 1000)
     {
+        try
+        {
         _maxRetries = maxRetries;
         _retryDelayMs = retryDelayMs;
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            throw new ArgumentOutOfRangeException("Los parámetros de reintento no son válidos", ex);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error al inicializar el cliente de socket", ex);
+        }
     }
 
     public async Task ConnectAsync(string ip, int port)
@@ -46,6 +57,8 @@ public class SocketClient
 
     public async Task SendAsync(string message)
     {
+        try
+        {
         if (_client == null || !_client.Connected)
         {
             throw new InvalidOperationException("El cliente no está conectado");
@@ -82,6 +95,13 @@ public class SocketClient
                 await Task.Delay(_retryDelayMs);
                 await TryReconnectAsync();
             }
+       
+        }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al enviar el mensaje: {ex.Message}");
+            throw;
         }
     }
 
@@ -104,8 +124,21 @@ public class SocketClient
 
     public void Disconnect()
     {
+        try
+        {
         _stream?.Close();
         _client?.Close();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al desconectar: {ex.Message}");
+            throw;
+        }
+        finally
+        {
+            _client = null!;// Liberar el cliente
+            _stream = null!;// Liberar el stream
+        }
     }
 }
 

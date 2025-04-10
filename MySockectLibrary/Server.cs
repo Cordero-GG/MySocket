@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
+using System.Runtime.ConstrainedExecution;
 
 namespace MySockectLibrary
 {
@@ -17,13 +18,26 @@ namespace MySockectLibrary
 
         public SocketServer(int port, int maxRetries = 3, int retryDelayMs = 1000)
         {
+            try
+            {
             _listener = new TcpListener(IPAddress.Any, port);
             _maxRetries = maxRetries;
             _retryDelayMs = retryDelayMs;
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                throw new ArgumentOutOfRangeException("Los parámetros de reintento no son válidos", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error al inicializar el servidor de socket", ex);
+            }
         }
 
         public async Task StartAsync()
         {
+            try
+            {
             _isRunning = true;
             _listener.Start();
             Console.WriteLine($"Server iniciado en puerto {((IPEndPoint)_listener.LocalEndpoint).Port}");
@@ -42,6 +56,15 @@ namespace MySockectLibrary
                     Console.WriteLine($"Error aceptando conexión: {ex.Message}");
                     await Task.Delay(_retryDelayMs);
                 }
+            }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al iniciar el servidor: {ex.Message}");// Manejo de excepciones al iniciar el servidor
+            }
+            finally
+            {
+                _listener.Stop(); // Asegúrate de detener el listener al finalizar
             }
         }
 
@@ -80,6 +103,8 @@ namespace MySockectLibrary
                 {
                     while (true) // Mantener la conexión abierta para múltiples mensajes
                     {
+                        try
+                        {
                         byte[] buffer = new byte[1024];
                         int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
 
@@ -92,6 +117,12 @@ namespace MySockectLibrary
                         string response = $"{message}";
                         byte[] responseBytes = Encoding.UTF8.GetBytes(response);
                         await stream.WriteAsync(responseBytes, 0, responseBytes.Length);
+                        }
+                        catch (IOException ex)
+                        {
+                            Console.WriteLine($"Error de E/S: {ex.Message}");
+                            break; // Salir del bucle si hay un error de E/S
+                        }
                     }
                 }
             }
@@ -103,8 +134,15 @@ namespace MySockectLibrary
 
         public void Stop()
         {
+            try
+            {
             _isRunning = false;
             _listener.Stop();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al detener el servidor: {ex.Message}");// Manejo de excepciones al detener el servidor    
+            }
         }
     }
 }
