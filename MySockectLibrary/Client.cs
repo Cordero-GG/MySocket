@@ -20,10 +20,21 @@ public class SocketClient
     /// <returns>Una tarea que representa la operación asincrónica de conexión.</returns>
     public async Task ConnectAsync(string ip, int port)
     {
+        try
+        {
         _client = new TcpClient();
         await _client.ConnectAsync(ip, port);
         _stream = _client.GetStream();
         Console.WriteLine($"Conectado a {ip}:{port}");
+        }
+        catch (SocketException ex)
+        {
+            Console.WriteLine($"Error al conectar: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error inesperado: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -33,6 +44,8 @@ public class SocketClient
     /// <returns>Una tarea que representa la operación asincrónica de envío.</returns>
     public async Task SendAsync(string message)
     {
+        try
+        {
         // Convertir el mensaje a un arreglo de bytes.
         byte[] data = Encoding.UTF8.GetBytes(message);
 
@@ -47,6 +60,15 @@ public class SocketClient
         int bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length);
         string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
         Console.WriteLine($"Respuesta del servidor: {response}");
+        }
+        catch (IOException ex)
+        {
+            Console.WriteLine($"Error de IO: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error inesperado: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -54,7 +76,15 @@ public class SocketClient
     /// </summary>
     public void Disconnect()
     {
+        try
+       { 
         _stream?.Close();
         _client?.Close();
+       }
+       catch (Exception ex)
+       {
+        Console.WriteLine($"Error al desconectar: {ex.Message}");
+       }
+
     }
 }
