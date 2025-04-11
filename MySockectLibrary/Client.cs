@@ -1,25 +1,40 @@
-﻿using System.Net.Sockets;
+﻿using System.Net;
+using System.Net.Sockets;
 using System.Text;
+using MySockectLibrary; // correcto
 
 /// <summary>
 /// Clase que representa un cliente de socket TCP.
 /// </summary>
-public class SocketClient
+namespace MySockectLibrary
 {
-    // Cliente TCP utilizado para la conexión.
+public class SocketClient:ISocketClient
+{
     private TcpClient _client = null!;
-
-    // Flujo de red utilizado para enviar y recibir datos.
     private NetworkStream _stream = null!;
+    private readonly int _maxRetries;
+    private readonly int _retryDelayMs;
 
-    /// <summary>
-    /// Conecta el cliente al servidor especificado por la dirección IP y el puerto.
-    /// </summary>
-    /// <param name="ip">Dirección IP del servidor.</param>
-    /// <param name="port">Puerto del servidor.</param>
-    /// <returns>Una tarea que representa la operación asincrónica de conexión.</returns>
+    public SocketClient(int maxRetries = 3, int retryDelayMs = 1000)
+    {
+        try
+        {
+        _maxRetries = maxRetries;
+        _retryDelayMs = retryDelayMs;
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            throw new ArgumentOutOfRangeException("Los parámetros de reintento no son válidos", ex);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error al inicializar el cliente de socket", ex);
+        }
+    }
+
     public async Task ConnectAsync(string ip, int port)
     {
+<<<<<<< HEAD
         try
         {
         _client = new TcpClient();
@@ -34,28 +49,57 @@ public class SocketClient
         catch (Exception ex)
         {
             Console.WriteLine($"Error inesperado: {ex.Message}");
+=======
+        int retryCount = 0;
+        while (retryCount < _maxRetries)
+        {
+            try
+            {
+                _client = new TcpClient();
+                await _client.ConnectAsync(ip, port);
+                _stream = _client.GetStream();
+                Console.WriteLine($"Conectado a {ip}:{port}");
+                return;
+            }
+            catch (Exception ex) when (ex is SocketException || ex is IOException)
+            {
+                retryCount++;
+                Console.WriteLine($"Intento {retryCount} de conexión fallido: {ex.Message}");
+
+                if (retryCount >= _maxRetries)
+                    throw new Exception($"No se pudo conectar después de {_maxRetries} intentos", ex);
+
+                await Task.Delay(_retryDelayMs);
+            }
+>>>>>>> ST-Branch
         }
     }
 
-    /// <summary>
-    /// Envía un mensaje al servidor y espera una respuesta.
-    /// </summary>
-    /// <param name="message">Mensaje a enviar.</param>
-    /// <returns>Una tarea que representa la operación asincrónica de envío.</returns>
     public async Task SendAsync(string message)
     {
         try
         {
+<<<<<<< HEAD
         // Convertir el mensaje a un arreglo de bytes.
+=======
+        if (_client == null || !_client.Connected)
+        {
+            throw new InvalidOperationException("El cliente no está conectado");
+        }
+
+        int retryCount = 0;
+>>>>>>> ST-Branch
         byte[] data = Encoding.UTF8.GetBytes(message);
 
-        // Enviar el mensaje al servidor.
-        await _stream.WriteAsync(data, 0, data.Length);
-        Console.WriteLine($"Mensaje enviado: {message}");
+        while (retryCount < _maxRetries)
+        {
+            try
+            {
+                await _stream!.WriteAsync(data, 0, data.Length);
 
-        // Buffer para almacenar la respuesta del servidor.
-        byte[] buffer = new byte[1024];
+                Console.WriteLine($"Mensaje enviado: {message}");
 
+<<<<<<< HEAD
         // Leer la respuesta del servidor.
         int bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length);
         string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
@@ -69,14 +113,59 @@ public class SocketClient
         {
             Console.WriteLine($"Error inesperado: {ex.Message}");
         }
+=======
+                byte[] buffer = new byte[1024];
+                int bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length);
+
+                if (bytesRead == 0)
+                    throw new SocketException((int)SocketError.ConnectionReset);
+
+                string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                Console.WriteLine($"Respuesta del servidor: {response}");
+                return;
+            }
+            catch (Exception ex) when (ex is SocketException || ex is IOException)
+            {
+                retryCount++;
+                Console.WriteLine($"Intento {retryCount} de envío fallido: {ex.Message}");
+
+                if (retryCount >= _maxRetries)
+                    throw;
+
+                await Task.Delay(_retryDelayMs);
+                await TryReconnectAsync();
+            }
+       
+        }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al enviar el mensaje: {ex.Message}");
+            throw;
+        }
     }
 
-    /// <summary>
-    /// Desconecta el cliente del servidor.
-    /// </summary>
+    private async Task TryReconnectAsync()
+    {
+        try
+    {
+        if (_client?.Connected == false && _client?.Client?.RemoteEndPoint is IPEndPoint endPoint)
+        {
+            Console.WriteLine("Intentando reconectar...");
+            await ConnectAsync(endPoint.Address.ToString(), endPoint.Port);
+        }
+    }
+    catch
+    {
+        // Silenciar errores de reconexión, ya que el reintento principal manejará esto
+    }
+>>>>>>> ST-Branch
+    }
+
     public void Disconnect()
     {
         try
+<<<<<<< HEAD
        { 
         _stream?.Close();
         _client?.Close();
@@ -86,5 +175,23 @@ public class SocketClient
         Console.WriteLine($"Error al desconectar: {ex.Message}");
        }
 
+=======
+        {
+        _stream?.Close();
+        _client?.Close();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al desconectar: {ex.Message}");
+            throw;
+        }
+        finally
+        {
+            _client = null!;// Liberar el cliente
+            _stream = null!;// Liberar el stream
+        }
+>>>>>>> ST-Branch
     }
+}
+
 }

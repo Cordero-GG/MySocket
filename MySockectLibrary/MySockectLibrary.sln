@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35913.81 d17.13
+VisualStudioVersion = 17.13.35913.81
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MySockectLibrary", "MySockectLibrary.csproj", "{1458A632-3849-4296-B7CD-D609E14F63A3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cliente", "..\Cliente\Cliente.csproj", "{76EDC06A-14C3-4FAA-975D-B985AF7B3FEE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "..\Server\Server.csproj", "{7F714E44-AF73-4BAB-B5B2-5577AE729F0F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{1458A632-3849-4296-B7CD-D609E14F63A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1458A632-3849-4296-B7CD-D609E14F63A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1458A632-3849-4296-B7CD-D609E14F63A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76EDC06A-14C3-4FAA-975D-B985AF7B3FEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76EDC06A-14C3-4FAA-975D-B985AF7B3FEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76EDC06A-14C3-4FAA-975D-B985AF7B3FEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76EDC06A-14C3-4FAA-975D-B985AF7B3FEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F714E44-AF73-4BAB-B5B2-5577AE729F0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F714E44-AF73-4BAB-B5B2-5577AE729F0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F714E44-AF73-4BAB-B5B2-5577AE729F0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F714E44-AF73-4BAB-B5B2-5577AE729F0F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

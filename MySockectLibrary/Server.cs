@@ -4,28 +4,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
+using System.Runtime.ConstrainedExecution;
+using MySockectLibrary; // correcto
+
 
 namespace MySockectLibrary
 {
-    /// <summary>
-    /// Clase que representa un servidor de socket TCP.
-    /// </summary>
-    public class SocketServer
+
+    public class SocketServer: ISocketServer
     {
-        // Listener TCP utilizado para aceptar conexiones de clientes.
         private TcpListener _listener;
-
-        // Indica si el servidor está en ejecución.
         private bool _isRunning;
+        private readonly int _maxRetries;
+        private readonly int _retryDelayMs;
 
-        /// <summary>
-        /// Inicializa una nueva instancia de la clase <see cref="SocketServer"/> con el puerto especificado.
-        /// </summary>
-        /// <param name="port">Puerto en el que el servidor escuchará las conexiones entrantes.</param>
-        public SocketServer(int port)
+        public SocketServer(int port, int maxRetries = 3, int retryDelayMs = 1000)
         {
             try
             {
+<<<<<<< HEAD
                 // Inicializa el listener TCP en la dirección IP local y el puerto especificado.
                 _listener = new TcpListener(IPAddress.Any, port);
             }
@@ -36,16 +33,30 @@ namespace MySockectLibrary
             catch (Exception ex)
             {
                 Console.WriteLine($"Error inesperado: {ex.Message}");
+=======
+            _listener = new TcpListener(IPAddress.Any, port);
+            _maxRetries = maxRetries;
+            _retryDelayMs = retryDelayMs;
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                throw new ArgumentOutOfRangeException("Los parámetros de reintento no son válidos", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error al inicializar el servidor de socket", ex);
+>>>>>>> ST-Branch
             }
         }
 
-        /// <summary>
-        /// Inicia el servidor y comienza a aceptar conexiones de clientes.
-        /// </summary>
-        /// <returns>Una tarea que representa la operación asincrónica de inicio del servidor.</returns>
         public async Task StartAsync()
         {
+<<<<<<< HEAD
             try{
+=======
+            try
+            {
+>>>>>>> ST-Branch
             _isRunning = true;
             _listener.Start();
             Console.WriteLine($"Server iniciado en puerto {((IPEndPoint)_listener.LocalEndpoint).Port}");
@@ -54,6 +65,7 @@ namespace MySockectLibrary
             {
                 try
                 {
+<<<<<<< HEAD
                 var client = await _listener.AcceptTcpClientAsync();
                 _ = HandleClientAsync(client); // Manejar cliente en segundo plano
                 }
@@ -74,17 +86,61 @@ namespace MySockectLibrary
             catch (Exception ex)
             {
                 Console.WriteLine($"Error inesperado: {ex.Message}");
+=======
+                    var client = await _listener.AcceptTcpClientAsync();
+                    _ = HandleClientWithRetryAsync(client);
+                }
+                catch (Exception ex) when (ex is SocketException || ex is ObjectDisposedException)
+                {
+                    if (!_isRunning) return; // Detención normal del servidor
+
+                    Console.WriteLine($"Error aceptando conexión: {ex.Message}");
+                    await Task.Delay(_retryDelayMs);
+                }
+            }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al iniciar el servidor: {ex.Message}");// Manejo de excepciones al iniciar el servidor
+            }
+            finally
+            {
+                _listener.Stop(); // Asegúrate de detener el listener al finalizar
             }
         }
 
-        /// <summary>
-        /// Maneja la comunicación con un cliente conectado.
-        /// </summary>
-        /// <param name="client">Cliente TCP conectado.</param>
-        /// <returns>Una tarea que representa la operación asincrónica de manejo del cliente.</returns>
+        private async Task HandleClientWithRetryAsync(TcpClient client)
+        {
+            int retryCount = 0;
+
+            while (retryCount < _maxRetries)
+            {
+                try
+                {
+                    await HandleClientAsync(client);
+                    return;
+                }
+                catch (Exception ex) when (ex is SocketException || ex is IOException)
+                {
+                    retryCount++;
+                    Console.WriteLine($"Intento {retryCount} de manejo de cliente fallido: {ex.Message}");
+
+                    if (retryCount >= _maxRetries)
+                    {
+                        Console.WriteLine($"No se pudo manejar el cliente después de {_maxRetries} intentos");
+                        return;
+                    }
+
+                    await Task.Delay(_retryDelayMs);
+                }
+>>>>>>> ST-Branch
+            }
+        }
+
         private async Task HandleClientAsync(TcpClient client)
         {
             try
+<<<<<<< HEAD
             {
             using (client)
             using (var stream = client.GetStream())
@@ -122,12 +178,42 @@ namespace MySockectLibrary
             catch (Exception ex)
             {
                 Console.WriteLine($"Error inesperado: {ex.Message}");
+=======
+            {
+                using (var stream = client.GetStream())
+                {
+                    while (true) // Mantener la conexión abierta para múltiples mensajes
+                    {
+                        try
+                        {
+                        byte[] buffer = new byte[1024];
+                        int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+
+                        if (bytesRead == 0) // Cliente cerró la conexión
+                            break;
+
+                        string message = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                        Console.WriteLine($"Mensaje recibido: {message}");
+
+                        string response = $"{message}";
+                        byte[] responseBytes = Encoding.UTF8.GetBytes(response);
+                        await stream.WriteAsync(responseBytes, 0, responseBytes.Length);
+                        }
+                        catch (IOException ex)
+                        {
+                            Console.WriteLine($"Error de E/S: {ex.Message}");
+                            break; // Salir del bucle si hay un error de E/S
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                client.Dispose();
+>>>>>>> ST-Branch
             }
         }
 
-        /// <summary>
-        /// Detiene el servidor y deja de aceptar conexiones de clientes.
-        /// </summary>
         public void Stop()
         {
             try
@@ -135,6 +221,7 @@ namespace MySockectLibrary
             _isRunning = false;
             _listener.Stop();
             }
+<<<<<<< HEAD
             catch (SocketException ex)
             {
                 Console.WriteLine($"Error al detener el servidor: {ex.Message}");
@@ -142,6 +229,11 @@ namespace MySockectLibrary
             catch (Exception ex)
             {
                 Console.WriteLine($"Error inesperado: {ex.Message}");
+=======
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al detener el servidor: {ex.Message}");// Manejo de excepciones al detener el servidor    
+>>>>>>> ST-Branch
             }
         }
     }
