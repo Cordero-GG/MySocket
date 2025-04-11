@@ -5,6 +5,8 @@ using System.Text;
 /// <summary>
 /// Clase que representa un cliente de socket TCP.
 /// </summary>
+namespace MySocketLibrary
+{
 public class SocketClient:ISocketClient
 {
     private TcpClient _client = null!;
@@ -142,3 +144,4 @@ public class SocketClient:ISocketClient
     }
 }
 
+}
