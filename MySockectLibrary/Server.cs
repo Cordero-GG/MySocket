@@ -9,7 +9,7 @@ using System.Runtime.ConstrainedExecution;
 namespace MySockectLibrary
 {
 
-    public class SocketServer
+    public class SocketServer: ISocketServer
     {
         private TcpListener _listener;
         private bool _isRunning;

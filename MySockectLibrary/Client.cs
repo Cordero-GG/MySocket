@@ -5,7 +5,7 @@ using System.Text;
 /// <summary>
 /// Clase que representa un cliente de socket TCP.
 /// </summary>
-public class SocketClient
+public class SocketClient:ISocketClient
 {
     private TcpClient _client = null!;
     private NetworkStream _stream = null!;
