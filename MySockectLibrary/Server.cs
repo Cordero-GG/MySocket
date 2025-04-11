@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Runtime.ConstrainedExecution;
+using MySockectLibrary; // correcto
+
 
 namespace MySockectLibrary
 {

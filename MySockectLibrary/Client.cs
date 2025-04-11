@@ -1,11 +1,12 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using MySockectLibrary; // correcto
 
 /// <summary>
 /// Clase que representa un cliente de socket TCP.
 /// </summary>
-namespace MySocketLibrary
+namespace MySockectLibrary
 {
 public class SocketClient:ISocketClient
 {
@@ -73,7 +74,8 @@ public class SocketClient:ISocketClient
         {
             try
             {
-                await _stream.WriteAsync(data, 0, data.Length);
+                await _stream!.WriteAsync(data, 0, data.Length);
+
                 Console.WriteLine($"Mensaje enviado: {message}");
 
                 byte[] buffer = new byte[1024];
@@ -110,18 +112,17 @@ public class SocketClient:ISocketClient
     private async Task TryReconnectAsync()
     {
         try
+    {
+        if (_client?.Connected == false && _client?.Client?.RemoteEndPoint is IPEndPoint endPoint)
         {
-            if (_client?.Connected == false)
-            {
-                Console.WriteLine("Intentando reconectar...");
-                await ConnectAsync(((IPEndPoint)_client.Client.RemoteEndPoint).Address.ToString(),
-                                 ((IPEndPoint)_client.Client.RemoteEndPoint).Port);
-            }
+            Console.WriteLine("Intentando reconectar...");
+            await ConnectAsync(endPoint.Address.ToString(), endPoint.Port);
         }
-        catch
-        {
-            // Silenciar errores de reconexión, ya que el reintento principal manejará esto
-        }
+    }
+    catch
+    {
+        // Silenciar errores de reconexión, ya que el reintento principal manejará esto
+    }
     }
 
     public void Disconnect()
